@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -17,8 +18,7 @@ class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-//        requestCameraPermission()
-//        requestImagePermission()
+        checkPermission()
         FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
             if (task.isSuccessful) {
                 val token = task.result
@@ -29,6 +29,20 @@ class MainActivity : ComponentActivity() {
             WebViewTheme {
                 WebViewScreen(this)
             }
+        }
+    }
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+    fun checkPermission() {
+        if (Build.VERSION.SDK_INT >= 32) {
+            if (ContextCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.ACCESS_NOTIFICATION_POLICY
+                ) == PackageManager.PERMISSION_GRANTED
+            ) return
+            val launcher = registerForActivityResult<String, Boolean>(
+                ActivityResultContracts.RequestPermission()
+            ) { _: Boolean? -> }
+            launcher.launch(Manifest.permission.POST_NOTIFICATIONS)
         }
     }
 
